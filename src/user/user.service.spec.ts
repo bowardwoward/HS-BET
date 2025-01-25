@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserService } from './user.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { UserService } from '@/user/user.service';
+import { PrismaService } from '@/prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common/exceptions';
 
 const prismaMock = {
