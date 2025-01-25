@@ -14,12 +14,49 @@ datasource db {
 }
 
 model User {
-  id                 String   @id @default(uuid())
-  accountNumber      String
-  name               String
-  mobile             String
-  username           String @unique
-  password           String
-  email              String @unique
-  hashedRefreshToken String?
+  id            String       @id @default(uuid())
+  accountNumber String
+  // A name can be anything for now
+  name          String
+  mobile        String
+  username      String       @unique
+  password      String
+  email         String       @unique
+  Token         Token?
+  UserDetail    UserDetail?
+  UserAddress   UserAddress?
+}
+
+model Token {
+  id           String @id @default(uuid())
+  token        String
+  refreshToken String
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+}
+
+model UserDetail {
+  id          String   @id @default(uuid())
+  firstName   String
+  lastName    String
+  dateOfBirth DateTime
+  branch      String
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+}
+
+model UserAddress {
+  id       String  @id @default(uuid())
+  street   String?
+  barangay String?
+  city     String?
+  province String?
+  region   String?
+  zipCode  String?
+  country  String?
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
 }

@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from '@/user/user.service';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -44,8 +41,8 @@ describe('UserService', () => {
 
       const result = await userService.getUserByUsername(existingUser.username);
       expect(result).toEqual(existingUser);
-      expect(prismaMock.user.findUnique).toBeCalledTimes(1);
-      expect(prismaMock.user.findUnique).toBeCalledWith({
+      expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
+      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
         where: { username: existingUser.username },
       });
     });
@@ -56,8 +53,8 @@ describe('UserService', () => {
       await expect(
         userService.getUserByUsername('non-existing-user'),
       ).rejects.toThrow(NotFoundException);
-      expect(prismaMock.user.findUnique).toBeCalledTimes(1);
-      expect(prismaMock.user.findUnique).toBeCalledWith({
+      expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
+      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
         where: { username: 'non-existing-user' },
       });
     });
