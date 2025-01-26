@@ -194,6 +194,8 @@ describe('UserService', () => {
         email: 'testuser@example.com',
         accountNumber: '11111',
         mobile: '12331111',
+        accountId: '123',
+        cId: '1234',
       };
 
       const hashedPassword = 'hashed-password';

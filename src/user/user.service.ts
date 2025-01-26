@@ -24,13 +24,16 @@ export class UserService {
     });
   }
 
-  async getUserById(id: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({
+  async getUserById(
+    id: string,
+  ): Promise<(User & { user_details: UserDetail } & { token: Token }) | null> {
+    return (await this.prisma.user.findUnique({
       where: { id },
       include: {
         tokens: true,
+        user_details: true,
       },
-    });
+    })) as (User & { user_details: UserDetail } & { token: Token }) | null;
   }
 
   async getUserByUsername(username: string): Promise<User | null> {
