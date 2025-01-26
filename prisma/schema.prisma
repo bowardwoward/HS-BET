@@ -16,23 +16,22 @@ datasource db {
 model User {
   id            String       @id @default(uuid())
   accountNumber String
-  // A name can be anything for now
-  name          String
   mobile        String
   username      String       @unique
   password      String
   email         String       @unique
-  Token         Token?
-  UserDetail    UserDetail?
-  UserAddress   UserAddress?
+  tokens         Token?
+  user_details    UserDetail?
+  user_address   UserAddress?
 }
 
 model Token {
-  id           String @id @default(uuid())
+  id           String   @id @default(uuid())
   token        String
   refreshToken String
+  expires_at   DateTime
 
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
 }
 
@@ -43,7 +42,7 @@ model UserDetail {
   dateOfBirth DateTime
   branch      String
 
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
 }
 
@@ -57,6 +56,6 @@ model UserAddress {
   zipCode  String?
   country  String?
 
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
 }
