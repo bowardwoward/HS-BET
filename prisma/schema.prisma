@@ -16,13 +16,15 @@ datasource db {
 model User {
   id            String       @id @default(uuid())
   accountNumber String
+  accountId     String?
+  cId           String?
   mobile        String
   username      String       @unique
   password      String
   email         String       @unique
-  tokens         Token?
-  user_details    UserDetail?
-  user_address   UserAddress?
+  tokens        Token?
+  user_details  UserDetail?
+  user_address  UserAddress?
 }
 
 model Token {

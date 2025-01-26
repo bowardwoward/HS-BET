@@ -24,7 +24,28 @@ export const accountInfoSchema = z.object({
   balance: z.number(),
 });
 
+export const accountVerboseInfoSchema = z.object({
+  id: z.string().uuid(),
+  cId: z.string(),
+  account: z.string(),
+  branchCode: z.string(),
+  accountType: z.string(),
+  balance: z.string(), // or z.number() if you want to coerce it
+  dateOpened: z.string().datetime(),
+  status: z.enum(['ACTIVE', 'INACTIVE']),
+  createDate: z.string().datetime(),
+  updateDate: z.string().datetime(),
+});
+
+export const accountVerboseListSchema = z.object({
+  data: z.array(accountVerboseInfoSchema),
+});
+
 export type AccountResponseSchemaType = z.infer<typeof accountResponseSchema>;
 export type AccountInfoSchemaType = z.infer<typeof accountInfoSchema>;
-
+export type AccountVerboseInfoSchemaType = z.infer<
+  typeof accountVerboseInfoSchema
+>;
+export class AccountVerboseDTO extends createZodDto(accountVerboseInfoSchema) {}
 export class AccountResponseDTO extends createZodDto(accountResponseSchema) {}
+export class AccountListDTO extends createZodDto(accountVerboseListSchema) {}

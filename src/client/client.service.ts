@@ -61,6 +61,8 @@ export class ClientService {
       mobile: data.mobileNumber,
       password: 'defaultpassword123',
       accountNumber: `${CBSAccount.branchCode}${CBSAccount.account}`,
+      accountId: CBSAccount.account,
+      cId: value.cId,
     });
 
     await this.userService.createUserAddress(user.id, {

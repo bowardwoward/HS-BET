@@ -11,6 +11,12 @@ import { ClientController } from './client/client.controller';
 import { HttpModule } from '@nestjs/axios';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { FundService } from './fund/fund.service';
+import { FundController } from './fund/fund.controller';
+import { TransactionsController } from './transactions/transactions.controller';
+import { TransactionsService } from './transactions/transactions.service';
+import { AccountController } from './account/account.controller';
+import { AccountService } from './account/account.service';
 
 @Module({
   imports: [
@@ -29,7 +35,10 @@ import { UserModule } from './user/user.module';
     UserController,
     AuthController,
     ClientController,
+    FundController,
+    TransactionsController,
+    AccountController,
   ],
-  providers: [AppService, UserService, AuthService, ClientService],
+  providers: [AppService, UserService, AuthService, ClientService, FundService, TransactionsService, AccountService],
 })
 export class AppModule {}
