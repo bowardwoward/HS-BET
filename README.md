@@ -72,6 +72,6 @@ To access the images from the `docker-compose.yml` file, here are the relevant l
 
 1. Accounts Onboarding
 2. Authentication
-3. Reset password (TODO)
-4. Funds Transfer (TODO)
-5. Transfer History (TODO)
+3. Reset password (TODO: Setting up mailhog)
+4. Funds Transfer 
+5. Transfer History
