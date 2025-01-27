@@ -1,3 +1,4 @@
+import { EnvService } from '@/env/env.service';
 import {
   TransactionListType,
   TransactionPayloadType,
@@ -13,13 +14,14 @@ export class TransactionsService {
   constructor(
     private readonly httpService: HttpService,
     private readonly userService: UserService,
+    private readonly configService: EnvService,
   ) {}
 
   async fetchTransactions(
     payload: TransactionPayloadType,
     user: { sub: string },
   ): Promise<TransactionListType> {
-    const url = `${process.env.CBS_ENDPOINT}/accounts/transactions`;
+    const url = `${this.configService.get('CBS_ENDPOINT')}/accounts/transactions`;
     const authenticatedUser = await this.userService.getUserById(user.sub);
 
     const body: TransactionPayloadType = {

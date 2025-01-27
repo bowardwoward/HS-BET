@@ -1,7 +1,9 @@
+import { EmailService } from '@/email/email.service';
 import { UserService } from '@/user/user.service';
 import {
   ForbiddenException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -12,6 +14,7 @@ export class AuthService {
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
+    private readonly emailService: EmailService,
   ) {}
 
   async login(username: string, password: string) {
@@ -24,10 +27,15 @@ export class AuthService {
       throw new UnauthorizedException();
     }
 
-    const payload = { sub: user.id, username: user.username };
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      email: user.email,
+    };
     const { accessToken, refreshToken } = await this.getTokens(
       payload.sub,
       payload.username,
+      payload.email,
     );
     return {
       accessToken,
@@ -50,12 +58,13 @@ export class AuthService {
     });
   }
 
-  async getTokens(userId: string, username: string) {
+  async getTokens(userId: string, username: string, email: string) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
         {
           sub: userId,
           username,
+          email,
         },
         {
           secret: process.env.JWT_SECRET,
@@ -65,6 +74,7 @@ export class AuthService {
         {
           sub: userId,
           username,
+          email,
         },
         {
           secret: process.env.JWT_SECRET,
@@ -92,7 +102,7 @@ export class AuthService {
     }
 
     const refreshTokenMatch = await argon2.verify(
-      token.refreshToken,
+      token.refreshToken || '',
       refreshToken,
     );
 
@@ -100,9 +110,44 @@ export class AuthService {
       throw new ForbiddenException('Access Denied');
     }
 
-    const tokens = await this.getTokens(user.id, user.username);
+    const tokens = await this.getTokens(user.id, user.username, user.email);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
 
     return tokens;
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.userService.getUserByUsername(email);
+
+    if (!user) {
+      throw new NotFoundException('No user found');
+    }
+
+    await this.emailService.sendResetLink(email);
+  }
+
+  async resetPassword(
+    token: string,
+    password: string,
+  ): Promise<{ message: string } | null> {
+    const email = await this.emailService.decodeToken(token);
+
+    const user = await this.userService.getUserByUsername(email);
+
+    if (!user) {
+      throw new NotFoundException('No user found for email');
+    }
+
+    await this.userService.updateUser(user.id, {
+      password,
+    });
+
+    await this.userService.updateToken(user.id, {
+      resetToken: null,
+    });
+
+    return {
+      message: 'Password reset successfully',
+    };
   }
 }

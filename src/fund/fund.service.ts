@@ -1,4 +1,5 @@
 import { AccountService } from '@/account/account.service';
+import { EnvService } from '@/env/env.service';
 import { AccountVerboseInfoSchemaType } from '@/schemas';
 import { TransferPayload } from '@/schemas/transfer.payload.schema';
 import { TransferRequestType } from '@/schemas/transfer.request.schema';
@@ -22,13 +23,14 @@ export class FundService {
     private readonly httpService: HttpService,
     private readonly userService: UserService,
     private readonly accountService: AccountService,
+    private readonly configService: EnvService,
   ) {}
 
   async transferFunds(
     authUser: { sub: string; username: string },
     data: TransferRequestType,
   ): Promise<AccountVerboseInfoSchemaType> {
-    const url = `${process.env.CBS_ENDPOINT}/transactions`;
+    const url = `${this.configService.get('CBS_ENDPOINT')}/transactions`;
     const user = await this.userService.getUserById(authUser.sub);
     const currentAccount = await this.accountService.getCurrentAccount(
       String(user?.accountId) || '',

@@ -6,16 +6,19 @@ import { AuthService } from './auth.service';
 import { UserService } from '@/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
+import { EmailService } from '@/email/email.service';
 
 describe('AuthService', () => {
   let service: AuthService;
   let jwtService: JwtService;
   let userService: UserService;
+  let emailService: EmailService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
+        EmailService,
         {
           provide: JwtService,
           useValue: {
@@ -36,6 +39,7 @@ describe('AuthService', () => {
     service = module.get<AuthService>(AuthService);
     jwtService = module.get<JwtService>(JwtService);
     userService = module.get<UserService>(UserService);
+    emailService = module.get<EmailService>(EmailService);
   });
 
   it('service should be defined', () => {
@@ -48,6 +52,10 @@ describe('AuthService', () => {
 
   it('userService should be defined', () => {
     expect(userService).toBeDefined();
+  });
+
+  it('emailService should be defined', () => {
+    expect(emailService).toBeDefined();
   });
 
   it('should sign in and return an access token', async () => {
@@ -78,12 +86,13 @@ describe('AuthService', () => {
     const userId = 'userId';
     const username = 'username';
     const hashedToken = 'hashedToken';
+    const email = 'test@email.com';
 
     (jwtService.signAsync as jest.Mock).mockResolvedValue('token');
     (userService.saveTokens as jest.Mock).mockResolvedValue(undefined);
     jest.spyOn(service, 'hashData').mockResolvedValue(hashedToken);
 
-    const tokens = await service.getTokens(userId, username);
+    const tokens = await service.getTokens(userId, username, email);
 
     expect(tokens).toEqual({ accessToken: 'token', refreshToken: hashedToken });
     expect(jwtService.signAsync).toHaveBeenCalledTimes(2);

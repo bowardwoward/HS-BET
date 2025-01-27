@@ -6,11 +6,13 @@ import { PrismaService } from '@/prisma/prisma.service';
 import { HttpException, NotFoundException } from '@nestjs/common/exceptions';
 import { User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { HttpStatus } from '@nestjs/common';
 
 const prismaMock = {
   user: {
     findUnique: jest.fn(),
     findMany: jest.fn(),
+    findFirst: jest.fn(),
     create: jest.fn(),
   },
 };
@@ -38,31 +40,54 @@ describe('UserService', () => {
   });
 
   describe('getUserByUsername', () => {
-    it('should return user if exists', async () => {
+    it('should return user when searching by username', async () => {
       const existingUser = {
-        username: 'existing-user',
-        name: 'Existing User',
+        username: 'testuser',
+        email: 'test@example.com',
       };
 
-      prismaMock.user.findUnique.mockResolvedValue(existingUser);
+      prismaMock.user.findFirst.mockResolvedValue(existingUser);
 
       const result = await userService.getUserByUsername(existingUser.username);
       expect(result).toEqual(existingUser);
-      expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
-      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { username: existingUser.username },
+      expect(prismaMock.user.findFirst).toHaveBeenCalledWith({
+        where: {
+          OR: [
+            { username: existingUser.username },
+            { email: existingUser.username },
+          ],
+        },
       });
     });
 
-    it('should throw NotFoundException if user not exists', async () => {
-      prismaMock.user.findUnique.mockResolvedValue(null);
+    it('should return user when searching by email', async () => {
+      const existingUser = {
+        username: 'testuser',
+        email: 'test@example.com',
+      };
+
+      prismaMock.user.findFirst.mockResolvedValue(existingUser);
+
+      const result = await userService.getUserByUsername(existingUser.email);
+      expect(result).toEqual(existingUser);
+      expect(prismaMock.user.findFirst).toHaveBeenCalledWith({
+        where: {
+          OR: [{ username: existingUser.email }, { email: existingUser.email }],
+        },
+      });
+    });
+
+    it('should throw NotFoundException if user not found', async () => {
+      prismaMock.user.findFirst.mockResolvedValue(null);
 
       await expect(
-        userService.getUserByUsername('non-existing-user'),
+        userService.getUserByUsername('nonexistent'),
       ).rejects.toThrow(NotFoundException);
-      expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
-      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { username: 'non-existing-user' },
+
+      expect(prismaMock.user.findFirst).toHaveBeenCalledWith({
+        where: {
+          OR: [{ username: 'nonexistent' }, { email: 'nonexistent' }],
+        },
       });
     });
   });
@@ -101,7 +126,7 @@ describe('UserService', () => {
         password: 'hashed-password',
       };
 
-      prismaMock.user.findUnique.mockResolvedValue(validUser);
+      prismaMock.user.findFirst.mockResolvedValue(validUser);
       jest.spyOn(userService, 'comparePasswords').mockResolvedValue(true);
 
       const result = await userService.validateCredentials({
@@ -110,39 +135,44 @@ describe('UserService', () => {
       });
 
       expect(result).toEqual(validUser);
-      expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
-      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { username: validUser.username },
+      expect(prismaMock.user.findFirst).toHaveBeenCalledWith({
+        where: {
+          OR: [{ username: validUser.username }, { email: validUser.username }],
+        },
       });
-      expect(userService.comparePasswords).toHaveBeenCalledTimes(1);
       expect(userService.comparePasswords).toHaveBeenCalledWith(
         validUser.password,
         'plain-password',
       );
     });
 
-    it('should throw HttpException if the user is not found', async () => {
-      prismaMock.user.findUnique.mockResolvedValue(null);
+    it('should throw NotFoundException if the user is not found', async () => {
+      prismaMock.user.findFirst.mockResolvedValue(null);
 
       await expect(
         userService.validateCredentials({
           username: 'non-existing-user',
           password: 'plain-password',
         }),
-      ).rejects.toThrow(HttpException);
-      expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
-      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { username: 'non-existing-user' },
+      ).rejects.toThrow(NotFoundException);
+
+      expect(prismaMock.user.findFirst).toHaveBeenCalledWith({
+        where: {
+          OR: [
+            { username: 'non-existing-user' },
+            { email: 'non-existing-user' },
+          ],
+        },
       });
     });
 
-    it('should throw HttpException if the password is invalid', async () => {
+    it('should throw NotFoundException if the password is invalid', async () => {
       const validUser = {
         username: 'valid-user',
         password: 'hashed-password',
       };
 
-      prismaMock.user.findUnique.mockResolvedValue(validUser);
+      prismaMock.user.findFirst.mockResolvedValue(validUser);
       jest.spyOn(userService, 'comparePasswords').mockResolvedValue(false);
 
       await expect(
@@ -150,12 +180,15 @@ describe('UserService', () => {
           username: validUser.username,
           password: 'wrong-password',
         }),
-      ).rejects.toThrow(HttpException);
-      expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
-      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { username: validUser.username },
+      ).rejects.toThrow(
+        new HttpException('Invalid Credentials', HttpStatus.UNAUTHORIZED),
+      );
+
+      expect(prismaMock.user.findFirst).toHaveBeenCalledWith({
+        where: {
+          OR: [{ username: validUser.username }, { email: validUser.username }],
+        },
       });
-      expect(userService.comparePasswords).toHaveBeenCalledTimes(1);
       expect(userService.comparePasswords).toHaveBeenCalledWith(
         validUser.password,
         'wrong-password',

@@ -2,11 +2,14 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   Post,
+  Query,
   Req,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { z } from 'zod';
 import { AuthService } from './auth.service';
 import { JwtGuard } from './guards/jwt/jwt.guard';
 import { ZodPipe } from '@/zod/zod.pipe';
@@ -46,9 +49,33 @@ export class AuthController {
       await this.authService.logout(req.user['sub']);
       return { message: 'Logged out successfully' };
     } catch (error: unknown) {
-      console.error(error);
+      new Logger().error(error);
       throw new UnauthorizedException('You cannot do that!');
     }
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'When you forgot your password LMAO!' })
+  @ApiBody({ schema: { example: { email: 'user@test.com' } } })
+  async forgotPassword(
+    @Body(new ZodPipe(z.object({ email: z.string().email() })))
+    body: {
+      email: string;
+    },
+  ) {
+    return this.authService.forgotPassword(body.email);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({
+    summary: 'Reset password using token from query and new password from body',
+  })
+  @ApiBody({ schema: { example: { password: 'newPassword123' } } })
+  async resetPassword(
+    @Query('token') token: string,
+    @Body() { password }: { password: string },
+  ): Promise<{ message: string } | null> {
+    return this.authService.resetPassword(token, password);
   }
 
   @UseGuards(RefreshTokenGuard)
