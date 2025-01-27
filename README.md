@@ -10,6 +10,7 @@
 - Reset Password 🔃
 - Swagger Documentation with Authentication 😎
 - Custom Validation pipeline 🪈
+- Prisma ORM for even more typesafety with database 📐
 - Typesafe using Zod schemas ✅
 - API validation for incoming response 🧳
 - Account Retrieval 🏃‍♂️
@@ -33,6 +34,12 @@ $ docker compose up
 Install dependencies
 ```bash
 $ yarn install
+```
+
+Run the migration and seed the database
+```bash
+$ npx prisma migrate dev
+$ npx prisma db seed
 ```
 
 ## Compile and run the project
@@ -61,19 +68,6 @@ $ yarn run test:e2e
 $ yarn run test:cov
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ yarn install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
 ## Important Links
 To access the images from the `docker-compose.yml` file, here are the relevant link
 
@@ -81,3 +75,4 @@ To access the images from the `docker-compose.yml` file, here are the relevant l
 2. Swagger Docs: http://localhost:3000/docs
 3. Mailhog Web UI: http://localhost:8025
 
+> If you have installed an SQL client on your local system you can also pipe it to the postgres service. just copy the config PGSQL config from the .env (but why tho? just use the containerize service to make things easy).
