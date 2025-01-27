@@ -11,7 +11,8 @@
 - Swagger Documentation with Authentication 😎
 - Custom Validation pipeline 🪈
 - Typesafe using Zod schemas ✅
-- API validation 🧳
+- API validation for incoming response 🧳
+- Account Retrieval 🏃‍♂️
 
 ## Description
 
