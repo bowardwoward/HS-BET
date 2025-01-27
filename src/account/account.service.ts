@@ -1,3 +1,4 @@
+import { EnvService } from '@/env/env.service';
 import { AccountVerboseInfoSchemaType } from '@/schemas';
 import { UserService } from '@/user/user.service';
 import { HttpService } from '@nestjs/axios';
@@ -10,13 +11,14 @@ export class AccountService {
   constructor(
     private readonly httpService: HttpService,
     private readonly userService: UserService,
+    private readonly configService: EnvService,
   ) {}
 
   async getCurrentAccount(
     accountNumber: string,
     branchCode: string,
   ): Promise<AccountVerboseInfoSchemaType | null> {
-    const url = `${process.env.CBS_ENDPOINT}/accounts/inquiry`;
+    const url = `${this.configService.get('CBS_ENDPOINT')}/accounts/inquiry`;
     const response = await firstValueFrom(
       this.httpService
         .post<AccountVerboseInfoSchemaType>(url, {

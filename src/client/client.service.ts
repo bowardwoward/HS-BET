@@ -1,3 +1,5 @@
+import { EmailService } from '@/email/email.service';
+import { EnvService } from '@/env/env.service';
 import {
   AccountInfoSchemaType,
   AccountResponseSchemaType,
@@ -17,20 +19,25 @@ export class ClientService {
   private readonly logger = new Logger(ClientService.name, {
     timestamp: true,
   });
+
+  private readonly generateString = (length: number): string =>
+    Array.from({ length }, () => Math.random().toString(36).charAt(2)).join('');
+
   constructor(
     private readonly httpService: HttpService,
     private readonly userService: UserService,
+    private readonly configService: EnvService,
+    private readonly emailService: EmailService,
   ) {}
 
   async createAccount(data: OnboardingRequestSchemaType): Promise<{
     cId: string;
     branch: string;
-    password: string;
     username: string;
     message: string;
   }> {
-    const endpointUrl = `${process.env.CBS_ENDPOINT}/clients`;
-
+    const endpointUrl = `${this.configService.get('CBS_ENDPOINT')}/clients`;
+    const randomPassword = this.generateString(10);
     const response = await firstValueFrom(
       this.httpService.post<ResponseSchemaType>(endpointUrl, data).pipe(
         catchError((error: AxiosError) => {
@@ -59,7 +66,7 @@ export class ClientService {
       username: `${String(data.firstName).trim().toLocaleLowerCase()}.${String(data.lastName).trim().toLowerCase()}`,
       email: data.email,
       mobile: data.mobileNumber,
-      password: 'defaultpassword123',
+      password: randomPassword,
       accountNumber: `${CBSAccount.branchCode}${CBSAccount.account}`,
       accountId: CBSAccount.account,
       cId: value.cId,
@@ -81,12 +88,18 @@ export class ClientService {
       dateOfBirth: new Date(data.dateOfBirth),
       branch: value.branch,
     });
+
+    await this.emailService.sendMail({
+      to: data.email,
+      subject: 'Account Enrollment',
+      from: 'support@bet.com',
+      text: `Hello ${user.username} here is your password to access the API: ${randomPassword}`,
+    });
+
     return {
       ...value,
-      password: 'defaultpassword123',
       username: user.username,
-      message:
-        'User onboarded with account binded, please reset the password ASAP!',
+      message: 'User onboarded with account binded, please check your email',
     };
   }
 
@@ -95,7 +108,7 @@ export class ClientService {
     branchCode: string,
     accountType = 'SA',
   ): Promise<AccountInfoSchemaType> {
-    const url = `${process.env.CBS_ENDPOINT}/accounts`;
+    const url = `${this.configService.get('CBS_ENDPOINT')}/accounts`;
 
     const response = await firstValueFrom(
       this.httpService
@@ -120,7 +133,7 @@ export class ClientService {
     username: string;
   }): Promise<AccountResponseSchemaType> {
     const dUser = await this.userService.getUserById(user.sub);
-    const url = `${process.env.CBS_ENDPOINT}/accounts/${dUser?.accountNumber}`;
+    const url = `${this.configService.get('CBS_ENDPOINT')}/accounts/${dUser?.accountNumber}`;
     const response = await firstValueFrom(
       this.httpService.get(url).pipe(
         catchError((error: AxiosError) => {

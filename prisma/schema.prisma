@@ -29,8 +29,9 @@ model User {
 
 model Token {
   id           String   @id @default(uuid())
-  token        String
-  refreshToken String
+  token        String?
+  refreshToken String?
+  resetToken   String?
   expires_at   DateTime
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -37,8 +37,10 @@ export class UserService {
   }
 
   async getUserByUsername(username: string): Promise<User | null> {
-    const user = await this.prisma.user.findUnique({
-      where: { username },
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ username }, { email: username }],
+      },
     });
 
     if (!user) {
@@ -49,9 +51,19 @@ export class UserService {
   }
 
   async updateUser(id: string, data: Partial<User>): Promise<User> {
+    const updateData = { ...data };
+
+    if (data.password) {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(data.password, saltRounds);
+      updateData.password = hashedPassword;
+    } else {
+      delete updateData.password;
+    }
+
     return await this.prisma.user.update({
       where: { id },
-      data,
+      data: updateData,
     });
   }
 
@@ -136,9 +148,23 @@ export class UserService {
   }
 
   async updateToken(userId: string, data: Partial<Token>): Promise<Token> {
-    return await this.prisma.token.update({
+    return await this.prisma.token.upsert({
       where: { userId },
-      data,
+      update: {
+        token: data.token,
+        resetToken: data.resetToken,
+        refreshToken: data.refreshToken,
+        expires_at: new Date(),
+      },
+      create: {
+        token: data.token,
+        resetToken: data.resetToken,
+        refreshToken: data.refreshToken,
+        expires_at: new Date(),
+        user: {
+          connect: { id: userId },
+        },
+      },
     });
   }
 

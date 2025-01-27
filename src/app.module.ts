@@ -17,6 +17,11 @@ import { TransactionsController } from './transactions/transactions.controller';
 import { TransactionsService } from './transactions/transactions.service';
 import { AccountController } from './account/account.controller';
 import { AccountService } from './account/account.service';
+import { EnvService } from './env/env.service';
+import { EnvModule } from './env/env.module';
+import { ConfigModule } from '@nestjs/config';
+import { envSchema } from './env/env';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -29,6 +34,12 @@ import { AccountService } from './account/account.service';
     }),
     AuthModule,
     UserModule,
+    EnvModule,
+    ConfigModule.forRoot({
+      validate: (env) => envSchema.parse(env),
+      isGlobal: true,
+    }),
+    EmailModule,
   ],
   controllers: [
     AppController,
@@ -39,6 +50,15 @@ import { AccountService } from './account/account.service';
     TransactionsController,
     AccountController,
   ],
-  providers: [AppService, UserService, AuthService, ClientService, FundService, TransactionsService, AccountService],
+  providers: [
+    AppService,
+    UserService,
+    AuthService,
+    ClientService,
+    FundService,
+    TransactionsService,
+    AccountService,
+    EnvService,
+  ],
 })
 export class AppModule {}
