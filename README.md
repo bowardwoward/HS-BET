@@ -2,6 +2,16 @@
   <a href="https://hyperstacksinc.com/" target="blank"><img src="https://hyperstacksinc.com/wp-content/uploads/2024/07/horizontal-logomark-hyperOrange-2-300x74.png" width="640" alt="HS Logo" /></a>
 </p>
 
+## Features
+
+- Account Onbooarding 🏄 
+- Funds Transfer 💸
+- Mailing Capabilites 💌
+- Reset Password 🔃
+- Swagger Documentation with Authentication 😎
+- Custom Validation pipeline 🪈
+- Typesafe using Zod schemas ✅
+- API validation 🧳
 
 ## Description
 
@@ -67,11 +77,5 @@ To access the images from the `docker-compose.yml` file, here are the relevant l
 
 1. PGAdmin: http://localhost:8888
 2. Swagger Docs: http://localhost:3000/docs
+3. Mailhog Web UI: http://localhost:8025
 
-## Features
-
-1. Accounts Onboarding
-2. Authentication
-3. Reset password (TODO: Setting up mailhog)
-4. Funds Transfer 
-5. Transfer History
