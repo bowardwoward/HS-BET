@@ -13,6 +13,7 @@
 - Typesafe using Zod schemas ✅
 - API validation for incoming response 🧳
 - Account Retrieval 🏃‍♂️
+- Secure Authentication 💂‍♂️
 
 ## Description
 
