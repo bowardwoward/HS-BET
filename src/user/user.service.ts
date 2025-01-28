@@ -13,7 +13,9 @@ import * as bcrypt from 'bcrypt';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async createUser(data: Omit<User, 'id'>): Promise<User> {
+  async createUser(
+    data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>,
+  ): Promise<User> {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(data.password, saltRounds);
     return await this.prisma.user.create({
@@ -69,7 +71,7 @@ export class UserService {
 
   async createUserDetails(
     userId: string,
-    data: Omit<UserDetail, 'id' | 'userId'>,
+    data: Omit<UserDetail, 'id' | 'userId' | 'createdAt' | 'updatedAt'>,
   ): Promise<UserDetail> {
     return await this.prisma.userDetail.create({
       data: {
@@ -93,7 +95,7 @@ export class UserService {
 
   async createUserAddress(
     userId: string,
-    data: Omit<UserAddress, 'id' | 'userId'>,
+    data: Omit<UserAddress, 'id' | 'userId' | 'createdAt' | 'updatedAt'>,
   ): Promise<UserAddress> {
     return await this.prisma.userAddress.create({
       data: {

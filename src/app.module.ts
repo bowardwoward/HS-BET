@@ -22,6 +22,8 @@ import { EnvModule } from './env/env.module';
 import { ConfigModule } from '@nestjs/config';
 import { envSchema } from './env/env';
 import { EmailModule } from './email/email.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { TransferListener } from './listener/transfer';
 
 @Module({
   imports: [
@@ -40,6 +42,7 @@ import { EmailModule } from './email/email.module';
       isGlobal: true,
     }),
     EmailModule,
+    EventEmitterModule.forRoot(),
   ],
   controllers: [
     AppController,
@@ -59,6 +62,7 @@ import { EmailModule } from './email/email.module';
     TransactionsService,
     AccountService,
     EnvService,
+    TransferListener,
   ],
 })
 export class AppModule {}

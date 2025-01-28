@@ -13,18 +13,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Create a status enum for the transfer token
+enum Status {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
 model User {
-  id            String       @id @default(uuid())
+  id            String          @id @default(uuid())
   accountNumber String
   accountId     String?
   cId           String?
   mobile        String
-  username      String       @unique
+  username      String          @unique
   password      String
-  email         String       @unique
+  email         String          @unique
   tokens        Token?
   user_details  UserDetail?
   user_address  UserAddress?
+  TransferToken TransferToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Token {
@@ -36,6 +47,9 @@ model Token {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model UserDetail {
@@ -47,6 +61,9 @@ model UserDetail {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model UserAddress {
@@ -61,4 +78,24 @@ model UserAddress {
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TransferToken {
+  id                       String   @id @default(uuid())
+  otp                      String   @unique
+  hashedOtp                String
+  // keep the destination account number as reference
+  sourceAccountNumber      String
+  destinationAccountNumber String
+  amount                   String
+  description              String   @default("Transfer")
+  status                   Status   @default(PENDING)
+  // Add the user model as reference when listing app level transactions
+  user                     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                   String
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
 }

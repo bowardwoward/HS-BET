@@ -229,6 +229,8 @@ describe('UserService', () => {
         mobile: '12331111',
         accountId: '123',
         cId: '1234',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       const hashedPassword = 'hashed-password';
