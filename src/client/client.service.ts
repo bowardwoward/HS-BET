@@ -13,15 +13,13 @@ import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
+import { generateString } from '@/utils';
 
 @Injectable()
 export class ClientService {
   private readonly logger = new Logger(ClientService.name, {
     timestamp: true,
   });
-
-  private readonly generateString = (length: number): string =>
-    Array.from({ length }, () => Math.random().toString(36).charAt(2)).join('');
 
   constructor(
     private readonly httpService: HttpService,
@@ -37,7 +35,7 @@ export class ClientService {
     message: string;
   }> {
     const endpointUrl = `${this.configService.get('CBS_ENDPOINT')}/clients`;
-    const randomPassword = this.generateString(10);
+    const randomPassword = generateString(10);
     const response = await firstValueFrom(
       this.httpService.post<ResponseSchemaType>(endpointUrl, data).pipe(
         catchError((error: AxiosError) => {

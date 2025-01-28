@@ -10,3 +10,9 @@ export const transferRequestSchema = z.object({
 export type TransferRequestType = z.infer<typeof transferRequestSchema>;
 
 export class TransferRequestDTO extends createZodDto(transferRequestSchema) {}
+
+export class ConfirmTransferRequestDTO extends createZodDto(
+  z.object({
+    otp: z.string(),
+  }),
+) {}

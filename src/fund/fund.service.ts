@@ -1,18 +1,15 @@
 import { AccountService } from '@/account/account.service';
-import { EnvService } from '@/env/env.service';
+import { FundsTransferConfirmationEvent, FundsTransferEvent } from '@/events';
 import { AccountVerboseInfoSchemaType } from '@/schemas';
-import { TransferPayload } from '@/schemas/transfer.payload.schema';
 import { TransferRequestType } from '@/schemas/transfer.request.schema';
 import { UserService } from '@/user/user.service';
-import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
   ForbiddenException,
   Injectable,
   Logger,
 } from '@nestjs/common';
-import { AxiosError } from 'axios';
-import { firstValueFrom, catchError } from 'rxjs';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class FundService {
@@ -20,17 +17,15 @@ export class FundService {
     timestamp: true,
   });
   constructor(
-    private readonly httpService: HttpService,
     private readonly userService: UserService,
     private readonly accountService: AccountService,
-    private readonly configService: EnvService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async transferFunds(
     authUser: { sub: string; username: string },
     data: TransferRequestType,
-  ): Promise<AccountVerboseInfoSchemaType> {
-    const url = `${this.configService.get('CBS_ENDPOINT')}/transactions`;
+  ): Promise<AccountVerboseInfoSchemaType & { message: string }> {
     const user = await this.userService.getUserById(authUser.sub);
     const currentAccount = await this.accountService.getCurrentAccount(
       String(user?.accountId) || '',
@@ -44,6 +39,10 @@ export class FundService {
       );
     }
 
+    if (data.destinationAccount === user?.accountNumber) {
+      throw new BadRequestException('You cannot transfer to your own account');
+    }
+
     if (data.balance > Number(currentAccount.balance)) {
       throw new BadRequestException(
         'Your amount to send is greater than your balance',
@@ -54,57 +53,46 @@ export class FundService {
       throw new ForbiddenException('You are not allowed to do that!');
     }
 
-    const senderPayload: TransferPayload = {
-      source: user.accountNumber,
-      destination: data.destinationAccount,
-      amount: String(data.balance || '0'),
-      fee: '0',
-      amountType: 'deduct',
-      transactionType: 'TRANSFER-SEND',
-      transactionDate: new Date().toISOString().split('T')[0],
-      transactionDescription: data.description || '',
-      transactionReferrenceNumber: 'OOGABOOGA',
-      transactionChannel: 'INSTAPAY',
-      transactionCode: '000000',
-    };
-
-    const recieverPayload: TransferPayload = {
-      source: data.destinationAccount,
-      destination: user.accountNumber,
-      amount: String(data.balance || '0'),
-      fee: '0',
-      amountType: 'add',
-
-      //   TODO: I DON'T KNOW WHAT THE FUCK THESE ARE LMAO
-      transactionType: 'TRANSFER-SEND',
-      transactionDate: new Date().toISOString().split('T')[0],
-      transactionDescription: data.description || '',
-      transactionReferrenceNumber: 'OOGABOOGA',
-      transactionChannel: 'INSTAPAY',
-      transactionCode: '000000',
-    };
-
-    await firstValueFrom(
-      this.httpService.post<boolean>(url, senderPayload).pipe(
-        catchError((error: AxiosError) => {
-          this.logger.error(error.code, url);
-          throw new BadRequestException('Failed to deduct amount');
-        }),
-      ),
-    );
-
-    await firstValueFrom(
-      this.httpService.post<boolean>(url, recieverPayload).pipe(
-        catchError((error: AxiosError) => {
-          this.logger.error(error.code, url);
-          throw new BadRequestException('Failed to fetch Client Account');
-        }),
-      ),
+    // Call the event
+    this.eventEmitter.emit(
+      'transfer.send-confirmation',
+      new FundsTransferConfirmationEvent(data, user),
     );
 
     const updatedAccount = await this.accountService.getCurrentAccount(
       user?.accountNumber || '',
       user?.user_details.branch || '',
+    );
+
+    if (!updatedAccount) {
+      throw new BadRequestException('Failed to fetch updated account');
+    }
+
+    return {
+      ...updatedAccount,
+      message: 'Transfer confirmation sent',
+    };
+  }
+
+  async confirmTransfer(
+    otp: string,
+    user: { sub: string; username: string },
+  ): Promise<AccountVerboseInfoSchemaType> {
+    const authUser = await this.userService.getUserById(user.sub);
+
+    if (!authUser) {
+      throw new ForbiddenException('You are not allowed to do that!');
+    }
+
+    // Call the event
+    this.eventEmitter.emit(
+      'transfer.recieve-confirmation',
+      new FundsTransferEvent(authUser, otp),
+    );
+
+    const updatedAccount = await this.accountService.getCurrentAccount(
+      authUser?.accountNumber || '',
+      authUser?.user_details.branch || '',
     );
 
     if (!updatedAccount) {

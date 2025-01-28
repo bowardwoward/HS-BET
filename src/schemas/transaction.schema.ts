@@ -22,6 +22,17 @@ export const transactionsPayloadSchema = z.object({
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
+export const transactionTokenSchema = z.object({
+  sourceAccountNumber: z.string(),
+  destinationAccountNumber: z.string(),
+  amount: z.string(),
+  description: z.string(),
+  status: z.enum(['PENDING', 'SUCCESS', 'FAILED']),
+  hashedOtp: z.string(),
+  userId: z.string(),
+  otp: z.string(),
+});
+
 export const transactionListSchema = z.object({
   total: z.number(),
   result: z.array(transactionSchema),
@@ -30,6 +41,7 @@ export const transactionListSchema = z.object({
 export type TransactionPayloadType = z.infer<typeof transactionsPayloadSchema>;
 export type TransactionType = z.infer<typeof transactionSchema>;
 export type TransactionListType = z.infer<typeof transactionListSchema>;
+export type TransactionTokenType = z.infer<typeof transactionTokenSchema>;
 
 export class TransactionPayloadDTO extends createZodDto(
   transactionsPayloadSchema,

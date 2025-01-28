@@ -66,7 +66,7 @@ export class EmailService {
 
     return this.sendMail({
       to: email,
-      from: 'support@bet.com',
+      from: this.configService.get('MAIL_FROM_ADDRESS'),
       subject: 'Reset Password',
       text,
     });
