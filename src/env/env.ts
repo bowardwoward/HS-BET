@@ -13,6 +13,15 @@ export const envSchema = z.object({
   MAIL_PASSWORD: z.string(),
   EMAIL_PASSWORD_RESET_URL: z.string(),
   MAIL_FROM_ADDRESS: z.string().email(),
+  DB_TYPE: z
+    .enum(['postgres', 'mysql', 'mariadb', 'sqlite', 'mssql'])
+    .default('postgres'),
+  PG_USER: z.string().min(1),
+  PG_PASSWORD: z.string().min(1),
+  PG_HOST: z.string().min(1),
+  PG_PORT: z.string().or(z.number()).transform(Number),
+  PG_DB: z.string().min(1),
+  NODE_ENV: z.enum(['development', 'production', 'local']),
 });
 
 export type Env = z.infer<typeof envSchema>;

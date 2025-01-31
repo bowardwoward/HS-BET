@@ -143,7 +143,7 @@ export class AuthService {
     });
 
     await this.userService.updateToken(user.id, {
-      resetToken: null,
+      resetToken: undefined,
     });
 
     return {

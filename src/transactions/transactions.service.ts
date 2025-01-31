@@ -1,5 +1,5 @@
 import { EnvService } from '@/env/env.service';
-import { PrismaService } from '@/prisma/prisma.service';
+import { PrismaService } from '@/db/prisma.service';
 import {
   TransactionListType,
   TransactionPayloadType,
