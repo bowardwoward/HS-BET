@@ -28,11 +28,11 @@ export class TransactionsService {
   ): Promise<TransactionListType> {
     const url = `${this.configService.get('CBS_ENDPOINT')}/accounts/transactions`;
     const authenticatedUser = await this.userService.getUserById(user.sub);
-
     const body: TransactionPayloadType = {
       ...payload,
       accountNumber: authenticatedUser?.accountNumber || '',
     };
+
     const response = await firstValueFrom(
       this.httpService.post<TransactionListType>(url, body).pipe(
         catchError((error: AxiosError) => {

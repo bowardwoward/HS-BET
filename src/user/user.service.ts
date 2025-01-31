@@ -42,7 +42,7 @@ export class UserService {
   ): Promise<(User & { user_details: UserDetail } & { token: Token }) | null> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['userDetails', 'tokens'],
+      relations: ['user_details', 'tokens'],
     });
     return user as
       | (User & { user_details: UserDetail } & { token: Token })
