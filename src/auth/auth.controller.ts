@@ -13,10 +13,20 @@ import { z } from 'zod';
 import { AuthService } from './auth.service';
 import { JwtGuard } from './guards/jwt/jwt.guard';
 import { ZodPipe } from '@/zod/zod.pipe';
-import { loginRequestSchema, LoginRequestSchemaType } from '@/schemas';
-import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
+import {
+  loginRequestSchema,
+  LoginRequestSchemaType,
+  LoginResponseDTO,
+} from '@/schemas';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
 import { LocalGuard } from './guards/local/local.guard';
 import { RefreshTokenGuard } from './guards/refresh/refresh.guard';
+import { GenericResponseDTO } from '@/schemas/reset-password.schema';
 
 @Controller('auth')
 export class AuthController {
@@ -26,6 +36,10 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: 'User login' })
   @ApiBody({ schema: { example: { username: 'user', password: 'pass' } } })
+  @ApiOkResponse({
+    description: 'Returns access and refresh tokens',
+    type: LoginResponseDTO,
+  })
   async login(
     @Body(new ZodPipe(loginRequestSchema)) body: LoginRequestSchemaType,
   ) {
@@ -71,6 +85,10 @@ export class AuthController {
     summary: 'Reset password using token from query and new password from body',
   })
   @ApiBody({ schema: { example: { password: 'newPassword123' } } })
+  @ApiOkResponse({
+    description: 'Returns a message if successful',
+    type: GenericResponseDTO,
+  })
   async resetPassword(
     @Query('token') token: string,
     @Body() { password }: { password: string },
@@ -81,6 +99,10 @@ export class AuthController {
   @UseGuards(RefreshTokenGuard)
   @Get('refresh')
   @ApiBearerAuth()
+  @ApiOkResponse({
+    description: 'Returns access and refresh tokens',
+    type: LoginResponseDTO,
+  })
   async refreshTokens(
     @Req() req: { user: { sub: string; refreshToken: string } },
   ) {

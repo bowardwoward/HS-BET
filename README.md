@@ -10,7 +10,7 @@
 - Reset Password 🔃
 - Swagger Documentation with Authentication 😎
 - Custom Validation pipeline 🪈
-- Prisma ORM for even more typesafety with database 📐
+- ~~Prisma ORM for even more typesafety with database~~ Moved over to typeORM 📐
 - Typesafe using Zod schemas ✅
 - API validation for incoming response 🧳
 - Account Retrieval 🏃‍♂️
@@ -34,12 +34,6 @@ $ docker compose up
 Install dependencies
 ```bash
 $ yarn install
-```
-
-Run the migration and seed the database
-```bash
-$ npx prisma migrate dev
-$ npx prisma db seed
 ```
 
 ## Compile and run the project

@@ -9,8 +9,10 @@ import {
 } from '@/schemas/transaction.schema';
 import { GetUser } from '@/get-user/get-user.decorator';
 import { ZodPipe } from '@/zod/zod.pipe';
+import { IsActiveGuard } from '@/auth/guards/active/active.guard';
 
 @Controller('transactions')
+@UseGuards(IsActiveGuard)
 export class TransactionsController {
   constructor(private readonly transactionService: TransactionsService) {}
 

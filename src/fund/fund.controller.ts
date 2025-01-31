@@ -6,17 +6,23 @@ import {
   transferRequestSchema,
 } from '@/schemas/transfer.request.schema';
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 import { FundService } from './fund.service';
 import { ZodPipe } from '@/zod/zod.pipe';
 import { z } from 'zod';
+import { AccountVerboseDTO } from '@/schemas';
 
 @Controller('fund')
 export class FundController {
   constructor(private readonly fundService: FundService) {}
+
   @UseGuards(JwtGuard)
   @ApiBearerAuth()
   @Post('transfer')
+  @ApiOkResponse({
+    description: 'Transfer funds',
+    type: AccountVerboseDTO,
+  })
   async transferFunds(
     @GetUser() user: { sub: string; username: string },
     @Body(new ZodPipe(transferRequestSchema))
@@ -28,6 +34,10 @@ export class FundController {
   @UseGuards(JwtGuard)
   @ApiBearerAuth()
   @Post('confirm-transfer')
+  @ApiOkResponse({
+    description: 'Confirm transfer',
+    type: Boolean,
+  })
   async confirmTransfer(
     @GetUser() user: { sub: string; username: string },
     @Body(new ZodPipe(z.object({ otp: z.string() })))

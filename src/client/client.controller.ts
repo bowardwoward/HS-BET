@@ -7,6 +7,7 @@ import {
   onboardingRequestSchema,
   AccountResponseDTO,
   OnboardingRequestDTO,
+  OnboardingResponseDTO,
 } from '@/schemas';
 import { GetUser } from '@/get-user/get-user.decorator';
 
@@ -14,6 +15,10 @@ import { GetUser } from '@/get-user/get-user.decorator';
 export class ClientController {
   constructor(private readonly clientService: ClientService) {}
   @Post('/clients')
+  @ApiOkResponse({
+    description: 'Creates a new client account',
+    type: OnboardingResponseDTO,
+  })
   async createClient(
     @Body(new ZodPipe(onboardingRequestSchema))
     data: OnboardingRequestDTO,
