@@ -10,10 +10,25 @@ export const onboardingRequestSchema = z.object({
   address: addressSchema,
 });
 
+export const onboardingResponseSchema = z.object({
+  cId: z.string(),
+  message: z.string(),
+  branch: z.string(),
+  username: z.string(),
+});
+
+export type OnboardingResponseSchemaType = z.infer<
+  typeof onboardingResponseSchema
+>;
+
 export type OnboardingRequestSchemaType = z.infer<
   typeof onboardingRequestSchema
 >;
 
 export class OnboardingRequestDTO extends createZodDto(
   onboardingRequestSchema,
+) {}
+
+export class OnboardingResponseDTO extends createZodDto(
+  onboardingResponseSchema,
 ) {}
