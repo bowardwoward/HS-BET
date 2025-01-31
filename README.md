@@ -1,7 +1,6 @@
 <p align="center">
   <a href="https://hyperstacksinc.com/" target="blank"><img src="https://hyperstacksinc.com/wp-content/uploads/2024/07/horizontal-logomark-hyperOrange-2-300x74.png" width="640" alt="HS Logo" /></a>
 </p>
-
 ## Features
 
 - Account Onbooarding 🏄 
