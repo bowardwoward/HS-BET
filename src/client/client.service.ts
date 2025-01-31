@@ -8,9 +8,14 @@ import {
   accountResponseSchema,
   clientResponseSchema,
 } from '@/schemas';
+import { User } from '@/entities/user.entity';
+import { UserDetail } from '@/entities/user.detail.entity';
+import { UserAddress } from '@/entities/user.address.entity';
 import { UserService } from '@/user/user.service';
 import { HttpService } from '@nestjs/axios';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { generateString } from '@/utils';
@@ -22,6 +27,12 @@ export class ClientService {
   });
 
   constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    @InjectRepository(UserDetail)
+    private userDetailsRepository: Repository<UserDetail>,
+    @InjectRepository(UserAddress)
+    private userAddressRepository: Repository<UserAddress>,
     private readonly httpService: HttpService,
     private readonly userService: UserService,
     private readonly configService: EnvService,
@@ -44,10 +55,12 @@ export class ClientService {
         }),
       ),
     );
+
     const value: ResponseSchemaType = {
       cId: response.data.cId,
       branch: response.data.branch,
     };
+
     const CBSAccount = await this.fetchAccountNumber(value.cId, value.branch);
     const validatedData = clientResponseSchema.safeParse(value);
 
@@ -59,33 +72,40 @@ export class ClientService {
       throw new BadRequestException('API schema outdated');
     }
 
-    // Create the user account
-    const user = await this.userService.createUser({
-      username: `${String(data.firstName).trim().toLocaleLowerCase()}.${String(data.lastName).trim().toLowerCase()}`,
-      email: data.email,
-      mobile: data.mobileNumber,
-      password: randomPassword,
-      accountNumber: `${CBSAccount.branchCode}${CBSAccount.account}`,
-      accountId: CBSAccount.account,
-      cId: value.cId,
-    });
+    // Create user entity
+    const user = new User();
+    user.username = `${String(data.firstName).trim().toLocaleLowerCase()}.${String(data.lastName).trim().toLowerCase()}`;
+    user.email = data.email;
+    user.mobile = data.mobileNumber;
+    user.password = randomPassword;
+    user.accountNumber = `${CBSAccount.branchCode}${CBSAccount.account}`;
+    user.accountId = CBSAccount.account;
+    user.cId = value.cId;
 
-    await this.userService.createUserAddress(user.id, {
-      street: data.address.street || '',
-      barangay: data.address.barangay || '',
-      city: data.address.city || '',
-      country: data.address.country || '',
-      province: data.address.province || '',
-      zipCode: data.address.zipCode || '',
-      region: data.address.region || '',
-    });
+    const savedUser = await this.usersRepository.save(user);
 
-    await this.userService.createUserDetails(user.id, {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      dateOfBirth: new Date(data.dateOfBirth),
-      branch: value.branch,
-    });
+    // Create user address
+    const userAddress = new UserAddress();
+    userAddress.street = data.address.street || '';
+    userAddress.barangay = data.address.barangay || '';
+    userAddress.city = data.address.city || '';
+    userAddress.country = data.address.country || '';
+    userAddress.province = data.address.province || '';
+    userAddress.zipCode = data.address.zipCode || '';
+    userAddress.region = data.address.region || '';
+    userAddress.user = savedUser;
+
+    await this.userAddressRepository.save(userAddress);
+
+    // Create user details
+    const userDetails = new UserDetail();
+    userDetails.firstName = data.firstName;
+    userDetails.lastName = data.lastName;
+    userDetails.dateOfBirth = new Date(data.dateOfBirth);
+    userDetails.branch = value.branch;
+    userDetails.user = savedUser;
+
+    await this.userDetailsRepository.save(userDetails);
 
     await this.emailService.sendMail({
       to: data.email,

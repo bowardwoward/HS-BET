@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaModule } from './prisma/prisma.module';
+import { PrismaModule } from './db/prisma.module';
 import { UserController } from './user/user.controller';
-import { UserService } from './user/user.service';
 import { AuthService } from './auth/auth.service';
 import { AuthController } from './auth/auth.controller';
 import { ClientService } from './client/client.service';
@@ -24,10 +23,22 @@ import { envSchema } from './env/env';
 import { EmailModule } from './email/email.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { TransferListener } from './listener/transfer';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmConfig } from './db/db';
+import { User } from './entities/user.entity';
+import { UserAddress } from './entities/user.address.entity';
+import { UserDetail } from './entities/user.detail.entity';
+import { Token } from './entities/token.entity';
+import { UserService } from './user/user.service';
 
 @Module({
   imports: [
     PrismaModule,
+    TypeOrmModule.forRootAsync({
+      imports: [EnvModule],
+      useClass: TypeOrmConfig,
+    }),
+    TypeOrmModule.forFeature([User, UserAddress, UserDetail, Token]),
     HttpModule.register({
       headers: {
         'x-higala-username': process.env.API_USERNAME,
@@ -63,6 +74,7 @@ import { TransferListener } from './listener/transfer';
     AccountService,
     EnvService,
     TransferListener,
+    ClientService,
   ],
 })
 export class AppModule {}
